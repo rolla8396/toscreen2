@@ -125,6 +125,7 @@
             background-color: #0056b3;
         }
     </style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 
 <body>
@@ -163,6 +164,7 @@
                 </select>
             </div>
         </form>
+        <button id="downloadBtn" class="download-btn">下载图片</button>
     </div>
     <div class="card" id="to_screenshot">
         <div class="card-header">
@@ -206,7 +208,8 @@
                 account: params.get('account') || '',
                 id: params.get('id') || '',
                 amount: params.get('amount') || '',
-                type: params.get('type') || '转入' // 添加type参数支持，默认值为"转入"
+                type: params.get('type') || '转入',
+                account_type: params.get('account_type') || '巨量广告' // 添加业务平台参数支持，默认值为"巨量广告"
             };
         }
     
@@ -229,7 +232,8 @@
             if (params.account) document.getElementById('account').value = params.account;
             if (params.id) document.getElementById('id').value = params.id;
             if (params.amount) document.getElementById('amount').value = params.amount;
-            if (params.type) document.getElementById('type').value = params.type; // 添加type参数填充
+            if (params.type) document.getElementById('type').value = params.type;
+            if (params.account_type) document.getElementById('account_type').value = params.account_type; // 添加业务平台参数填充
         }
     
         // 页面加载时设置默认时间和填充 URL 参数
@@ -278,6 +282,60 @@
             document.querySelector('.amount').textContent = formatAmount(amount);
             document.querySelector('.card-content .platform-cell').textContent = account_type;
         }
+
+        // 添加下载图片功能
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const element = document.getElementById('to_screenshot');
+            
+            // 在截图前确保内容已更新
+            updateContent();
+            
+            // 获取设备类型
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            // 保存原始样式
+            const originalStyle = {
+                width: element.style.width,
+                maxWidth: element.style.maxWidth
+            };
+            
+            // 临时设置固定宽度（针对移动端）
+            if (isMobile) {
+                element.style.width = '1400px';
+                element.style.maxWidth = '1400px';
+            }
+            
+            html2canvas(element, {
+                scale: isMobile ? 2 : 2, // 统一使用2倍缩放
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true,
+                width: 1400, // 固定宽度为1400px
+                height: element.offsetHeight
+            }).then(function(canvas) {
+                // 还原原始样式
+                if (isMobile) {
+                    element.style.width = originalStyle.width;
+                    element.style.maxWidth = originalStyle.maxWidth;
+                }
+                
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = '转账截图.png';
+                link.href = canvas.toDataURL('image/png', 1.0);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(function(error) {
+                // 发生错误时也要还原样式
+                if (isMobile) {
+                    element.style.width = originalStyle.width;
+                    element.style.maxWidth = originalStyle.maxWidth;
+                }
+                console.error('截图生成失败:', error);
+                alert('截图生成失败，请稍后重试');
+            });
+        });
     </script>
 </body>
 
@@ -311,5 +369,21 @@
     #ctime {
         cursor: text;
     }
-</style>
+    
+    /* 下载按钮样式 */
+    .download-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+
+    .download-btn:hover {
+        background-color: #218838;
+    }
+    </style>
 </html>
