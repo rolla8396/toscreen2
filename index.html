@@ -204,12 +204,24 @@
         // 解析 URL 参数
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
+            
+            // 业务平台映射关系
+            const platformMap = {
+                'AD': '巨量广告',
+                '千川': '巨量千川',
+                '本地推': '巨量本地推'
+            };
+            
+            // 获取 account_type 参数并进行映射
+            const rawAccountType = params.get('account_type') || 'AD';
+            const mappedAccountType = platformMap[rawAccountType] || '巨量广告';
+            
             return {
                 account: params.get('account') || '',
                 id: params.get('id') || '',
                 amount: params.get('amount') || '',
                 type: params.get('type') || '转入',
-                account_type: params.get('account_type') || '巨量广告' // 添加业务平台参数支持，默认值为"巨量广告"
+                account_type: mappedAccountType
             };
         }
     
